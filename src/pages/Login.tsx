@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,16 +10,25 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { signInWithEmail, signUpWithEmail } from "@/lib/supabase-auth";
 import { lovable } from "@/integrations/lovable";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [registerName, setRegisterName] = useState("");
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/editor");
+    }
+  }, [user, loading, navigate]);
 
   const handleGoogleAuth = async () => {
     setIsLoading(true);
