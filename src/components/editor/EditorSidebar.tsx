@@ -7,16 +7,30 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { 
   Upload, 
   Mic, 
   Sparkles, 
-  Trash2, 
-  GripVertical,
   Square,
   RectangleVertical
 } from "lucide-react";
 import type { SlideData, TextStyle, AspectRatio } from "@/pages/Editor";
+import { SortableSlideItem } from "./SortableSlideItem";
 
 interface EditorSidebarProps {
   slides: SlideData[];
@@ -32,6 +46,7 @@ interface EditorSidebarProps {
   onDistributeText: () => void;
   onReorderSlides: (startIndex: number, endIndex: number) => void;
   onDeleteSlide: (slideId: string) => void;
+  onSlideTextChange: (slideId: string, text: string) => void;
 }
 
 const fonts = [
@@ -69,8 +84,27 @@ export const EditorSidebar = ({
   onDistributeText,
   onReorderSlides,
   onDeleteSlide,
+  onSlideTextChange,
 }: EditorSidebarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sensors for both mouse/touch drag-and-drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +118,16 @@ export const EditorSidebar = ({
     },
     [onImagesUpload]
   );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = slides.findIndex((s) => s.id === active.id);
+      const newIndex = slides.findIndex((s) => s.id === over.id);
+      onReorderSlides(oldIndex, newIndex);
+    }
+  };
 
   const updateStyle = (updates: Partial<TextStyle>) => {
     onTextStyleChange({ ...textStyle, ...updates });
@@ -148,46 +192,36 @@ export const EditorSidebar = ({
               </Button>
             </div>
 
-            {/* Slides List */}
+            {/* Slides List with Drag and Drop */}
             {slides.length > 0 && (
               <div className="space-y-2">
-                <Label>Порядок слайдов</Label>
-                <div className="space-y-2">
-                  {slides.map((slide, index) => (
-                    <div
-                      key={slide.id}
-                      className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
-                        index === activeSlideIndex
-                          ? "border-primary bg-primary/5"
-                          : "hover:bg-muted"
-                      }`}
-                      onClick={() => onActiveSlideChange(index)}
-                    >
-                      <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
-                      <div className="w-12 h-12 rounded overflow-hidden bg-muted flex-shrink-0">
-                        {slide.image && (
-                          <img
-                            src={slide.image}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
-                      <span className="text-sm flex-1">Слайд {index + 1}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteSlide(slide.id);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                <Label>Порядок слайдов (перетащите для изменения)</Label>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={slides.map((s) => s.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2">
+                      {slides.map((slide, index) => (
+                        <SortableSlideItem
+                          key={slide.id}
+                          slide={slide}
+                          index={index}
+                          isActive={index === activeSlideIndex}
+                          onClick={() => onActiveSlideChange(index)}
+                          onDelete={(e) => {
+                            e.stopPropagation();
+                            onDeleteSlide(slide.id);
+                          }}
+                        />
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             )}
           </TabsContent>
@@ -223,20 +257,34 @@ export const EditorSidebar = ({
               Распределить по слайдам
             </Button>
 
-            {slides.length > 0 && slides[activeSlideIndex] && (
-              <div className="space-y-2 pt-4 border-t">
-                <Label>Текст слайда {activeSlideIndex + 1}</Label>
-                <Textarea
-                  placeholder="Текст для этого слайда..."
-                  className="min-h-[80px]"
-                  value={slides[activeSlideIndex]?.text || ""}
-                  onChange={(e) => {
-                    const slide = slides[activeSlideIndex];
-                    if (slide) {
-                      // This would need to be handled via prop
-                    }
-                  }}
-                />
+            {/* Text fields for ALL slides */}
+            {slides.length > 0 && (
+              <div className="space-y-3 pt-4 border-t">
+                <Label className="text-base font-semibold">Текст на слайдах</Label>
+                {slides.map((slide, index) => (
+                  <div key={slide.id} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded overflow-hidden bg-muted flex-shrink-0">
+                        {slide.image && (
+                          <img
+                            src={slide.image}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <Label className="text-sm text-muted-foreground">
+                        Слайд {index + 1}
+                      </Label>
+                    </div>
+                    <Textarea
+                      placeholder={`Текст для слайда ${index + 1}...`}
+                      className="min-h-[60px] text-sm"
+                      value={slide.text}
+                      onChange={(e) => onSlideTextChange(slide.id, e.target.value)}
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </TabsContent>

@@ -66,7 +66,7 @@ const Editor = () => {
     setSlides((prev) => [...prev, ...newSlides].slice(0, 10));
   }, []);
 
-  const handleTextChange = useCallback((slideId: string, text: string) => {
+  const handleSlideTextChange = useCallback((slideId: string, text: string) => {
     setSlides((prev) =>
       prev.map((slide) =>
         slide.id === slideId ? { ...slide, text } : slide
@@ -114,17 +114,62 @@ const Editor = () => {
   const distributeText = useCallback(() => {
     if (!fullText.trim() || slides.length === 0) return;
     
-    const sentences = fullText.split(/(?<=[.!?])\s+/).filter(Boolean);
+    // Split by sentences, keeping different delimiters
+    const sentences = fullText
+      .split(/(?<=[.!?。！？])\s+/)
+      .filter((s) => s.trim().length > 0);
+    
     const slidesCount = slides.length;
-    const sentencesPerSlide = Math.ceil(sentences.length / slidesCount);
+    
+    // If we have fewer sentences than slides, split by paragraphs or evenly
+    let textParts: string[] = [];
+    
+    if (sentences.length >= slidesCount) {
+      // Distribute sentences evenly across slides
+      const sentencesPerSlide = Math.ceil(sentences.length / slidesCount);
+      
+      for (let i = 0; i < slidesCount; i++) {
+        const start = i * sentencesPerSlide;
+        const end = Math.min(start + sentencesPerSlide, sentences.length);
+        const part = sentences.slice(start, end).join(" ");
+        textParts.push(part);
+      }
+    } else {
+      // Try splitting by newlines/paragraphs
+      const paragraphs = fullText.split(/\n+/).filter((p) => p.trim().length > 0);
+      
+      if (paragraphs.length >= slidesCount) {
+        const partsPerSlide = Math.ceil(paragraphs.length / slidesCount);
+        for (let i = 0; i < slidesCount; i++) {
+          const start = i * partsPerSlide;
+          const end = Math.min(start + partsPerSlide, paragraphs.length);
+          const part = paragraphs.slice(start, end).join("\n");
+          textParts.push(part);
+        }
+      } else {
+        // Split by words evenly
+        const words = fullText.trim().split(/\s+/);
+        const wordsPerSlide = Math.ceil(words.length / slidesCount);
+        
+        for (let i = 0; i < slidesCount; i++) {
+          const start = i * wordsPerSlide;
+          const end = Math.min(start + wordsPerSlide, words.length);
+          const part = words.slice(start, end).join(" ");
+          textParts.push(part);
+        }
+      }
+    }
+    
+    // Ensure we have text for all slides
+    while (textParts.length < slidesCount) {
+      textParts.push("");
+    }
     
     setSlides((prev) =>
-      prev.map((slide, index) => {
-        const start = index * sentencesPerSlide;
-        const end = start + sentencesPerSlide;
-        const slideText = sentences.slice(start, end).join(" ");
-        return { ...slide, text: slideText };
-      })
+      prev.map((slide, index) => ({
+        ...slide,
+        text: textParts[index] || "",
+      }))
     );
   }, [fullText, slides.length]);
 
@@ -151,6 +196,7 @@ const Editor = () => {
             onDistributeText={distributeText}
             onReorderSlides={handleReorderSlides}
             onDeleteSlide={handleDeleteSlide}
+            onSlideTextChange={handleSlideTextChange}
           />
 
           {/* Main Editor Area */}
@@ -202,7 +248,7 @@ const Editor = () => {
                   slide={activeSlide}
                   aspectRatio={aspectRatio}
                   textStyle={textStyle}
-                  onTextChange={(text) => handleTextChange(activeSlide.id, text)}
+                  onTextChange={(text) => handleSlideTextChange(activeSlide.id, text)}
                   onPositionChange={(pos) => handlePositionChange(activeSlide.id, pos)}
                   onPositionModeChange={(mode) => handlePositionModeChange(activeSlide.id, mode)}
                 />
