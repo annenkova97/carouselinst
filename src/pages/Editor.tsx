@@ -245,6 +245,8 @@ const Editor = () => {
         aspectRatio={aspectRatio}
         textStyle={textStyle}
         fullText={fullText}
+        projectTitle={projectTitle}
+        isSaving={isSaving}
         onImagesUpload={handleImagesUpload}
         onActiveSlideChange={setActiveSlideIndex}
         onAspectRatioChange={setAspectRatio}
@@ -256,6 +258,8 @@ const Editor = () => {
         onSlideTextChange={handleSlideTextChange}
         onPositionChange={handlePositionChange}
         onPositionModeChange={handlePositionModeChange}
+        onSaveProject={handleSaveProject}
+        onProjectTitleChange={setProjectTitle}
       />
     );
   }

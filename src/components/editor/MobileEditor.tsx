@@ -33,6 +33,8 @@ import {
   Download,
   Mic,
   MicOff,
+  Save,
+  Loader2,
 } from "lucide-react";
 import type { SlideData, TextStyle, AspectRatio } from "@/pages/Editor";
 import { MobileSortableSlide } from "./MobileSortableSlide";
@@ -70,6 +72,8 @@ interface MobileEditorProps {
   aspectRatio: AspectRatio;
   textStyle: TextStyle;
   fullText: string;
+  projectTitle: string;
+  isSaving: boolean;
   onImagesUpload: (files: File[]) => void;
   onActiveSlideChange: (index: number) => void;
   onAspectRatioChange: (ratio: AspectRatio) => void;
@@ -81,6 +85,8 @@ interface MobileEditorProps {
   onSlideTextChange: (slideId: string, text: string) => void;
   onPositionChange: (slideId: string, position: { x: number; y: number }) => void;
   onPositionModeChange: (slideId: string, mode: SlideData["positionMode"]) => void;
+  onSaveProject: () => void;
+  onProjectTitleChange: (title: string) => void;
 }
 
 const getFontClass = (fontFamily: string) => {
@@ -105,6 +111,8 @@ export const MobileEditor = ({
   aspectRatio,
   textStyle,
   fullText,
+  projectTitle,
+  isSaving,
   onImagesUpload,
   onActiveSlideChange,
   onAspectRatioChange,
@@ -116,6 +124,8 @@ export const MobileEditor = ({
   onSlideTextChange,
   onPositionChange,
   onPositionModeChange,
+  onSaveProject,
+  onProjectTitleChange,
 }: MobileEditorProps) => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -247,17 +257,36 @@ export const MobileEditor = ({
           onClick={() => navigate("/")}
         >
           <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm font-medium">Назад</span>
         </button>
-        <span className="text-sm font-semibold text-foreground">Редактор</span>
-        <Button
-          size="sm"
-          className="bg-gradient-brand text-xs px-3 h-8"
-          disabled={slides.length === 0}
-        >
-          <Download className="w-4 h-4 mr-1" />
-          Скачать
-        </Button>
+        <input
+          type="text"
+          value={projectTitle}
+          onChange={(e) => onProjectTitleChange(e.target.value)}
+          className="text-sm font-semibold text-foreground bg-transparent text-center border-none outline-none max-w-[120px]"
+          placeholder="Без названия"
+        />
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs px-2 h-8"
+            onClick={onSaveProject}
+            disabled={isSaving || slides.length === 0}
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+          </Button>
+          <Button
+            size="sm"
+            className="bg-gradient-brand text-xs px-2 h-8"
+            disabled={slides.length === 0}
+          >
+            <Download className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Hidden file input */}
