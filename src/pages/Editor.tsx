@@ -4,11 +4,13 @@ import { Header } from "@/components/layout/Header";
 import { EditorSidebar } from "@/components/editor/EditorSidebar";
 import { SlidePreview } from "@/components/editor/SlidePreview";
 import { CarouselPreview } from "@/components/editor/CarouselPreview";
+import { MobileEditor } from "@/components/editor/MobileEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download, Save, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useProjectStorage } from "@/hooks/useProjectStorage";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
 export interface SlideData {
@@ -57,6 +59,7 @@ const Editor = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const projectId = searchParams.get("project");
+  const isMobile = useIsMobile();
   
   const { user } = useAuth();
   const { isLoading, saveProject, loadProject } = useProjectStorage();
@@ -233,6 +236,31 @@ const Editor = () => {
 
   const activeSlide = slides[activeSlideIndex];
 
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <MobileEditor
+        slides={slides}
+        activeSlideIndex={activeSlideIndex}
+        aspectRatio={aspectRatio}
+        textStyle={textStyle}
+        fullText={fullText}
+        onImagesUpload={handleImagesUpload}
+        onActiveSlideChange={setActiveSlideIndex}
+        onAspectRatioChange={setAspectRatio}
+        onTextStyleChange={setTextStyle}
+        onFullTextChange={setFullText}
+        onDistributeText={distributeText}
+        onReorderSlides={handleReorderSlides}
+        onDeleteSlide={handleDeleteSlide}
+        onSlideTextChange={handleSlideTextChange}
+        onPositionChange={handlePositionChange}
+        onPositionModeChange={handlePositionModeChange}
+      />
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Header />

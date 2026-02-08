@@ -189,3 +189,8 @@
 .font-raleway { font-family: 'Raleway', sans-serif; }
 .font-poppins { font-family: 'Poppins', sans-serif; }
 .font-pacifico { font-family: 'Pacifico', cursive; }
+
+/* Safe area for mobile devices */
+.safe-area-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.75rem);
+}
