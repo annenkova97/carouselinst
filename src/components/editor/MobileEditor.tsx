@@ -31,11 +31,39 @@ import {
   Plus,
   ArrowLeft,
   Download,
+  Mic,
+  MicOff,
 } from "lucide-react";
 import type { SlideData, TextStyle, AspectRatio } from "@/pages/Editor";
 import { MobileSortableSlide } from "./MobileSortableSlide";
 import { MobileStyleSheet } from "./MobileStyleSheet";
 
+// Web Speech API types
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
 interface MobileEditorProps {
   slides: SlideData[];
   activeSlideIndex: number;
@@ -95,6 +123,51 @@ export const MobileEditor = ({
   const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Initialize speech recognition
+  const startRecording = useCallback(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Ваш браузер не поддерживает запись голоса");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "ru-RU";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = (event) => {
+      let transcript = "";
+      for (let i = 0; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      onFullTextChange(fullText + (fullText ? " " : "") + transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecording(true);
+  }, [fullText, onFullTextChange]);
+
+  const stopRecording = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsRecording(false);
+  }, []);
 
   const sensors = useSensors(
     useSensor(TouchSensor, {
@@ -345,14 +418,42 @@ export const MobileEditor = ({
         </div>
 
         {/* Text Input Area - always visible */}
-        <div className="px-3 py-2 border-t bg-card">
+        <div className="px-3 py-2 border-t bg-card space-y-2">
           <Textarea
-            placeholder={activeSlide ? `Текст для слайда ${activeSlideIndex + 1}...` : "Выберите фото для добавления текста"}
-            className="w-full min-h-[60px] max-h-[80px] text-sm resize-none"
-            value={activeSlide?.text || ""}
-            onChange={(e) => activeSlide && onSlideTextChange(activeSlide.id, e.target.value)}
-            disabled={!activeSlide}
+            placeholder="Введите весь текст поста здесь..."
+            className="w-full min-h-[70px] max-h-[90px] text-sm resize-none"
+            value={fullText}
+            onChange={(e) => onFullTextChange(e.target.value)}
           />
+          <div className="flex gap-2">
+            <Button
+              variant={isRecording ? "destructive" : "outline"}
+              size="sm"
+              className="flex-1"
+              onClick={isRecording ? stopRecording : startRecording}
+            >
+              {isRecording ? (
+                <>
+                  <MicOff className="w-4 h-4 mr-1" />
+                  Стоп
+                </>
+              ) : (
+                <>
+                  <Mic className="w-4 h-4 mr-1" />
+                  Голос
+                </>
+              )}
+            </Button>
+            <Button
+              size="sm"
+              className="flex-1 bg-gradient-brand"
+              onClick={onDistributeText}
+              disabled={!fullText.trim() || slides.length === 0}
+            >
+              <Sparkles className="w-4 h-4 mr-1" />
+              Распределить
+            </Button>
+          </div>
         </div>
       </div>
 
