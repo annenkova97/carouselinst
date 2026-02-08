@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import {
@@ -27,9 +27,10 @@ import {
   Move,
   ChevronLeft,
   ChevronRight,
-  X,
   Sparkles,
   Plus,
+  ArrowLeft,
+  Download,
 } from "lucide-react";
 import type { SlideData, TextStyle, AspectRatio } from "@/pages/Editor";
 import { MobileSortableSlide } from "./MobileSortableSlide";
@@ -88,6 +89,7 @@ export const MobileEditor = ({
   onPositionChange,
   onPositionModeChange,
 }: MobileEditorProps) => {
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isTextSheetOpen, setIsTextSheetOpen] = useState(false);
   const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
@@ -165,6 +167,26 @@ export const MobileEditor = ({
 
   return (
     <div className="flex flex-col h-[100dvh] bg-background">
+      {/* Top Header Bar */}
+      <div className="flex items-center justify-between px-3 py-2 border-b bg-card safe-area-top">
+        <button
+          className="flex items-center gap-1 text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="text-sm font-medium">Назад</span>
+        </button>
+        <span className="text-sm font-semibold text-foreground">Редактор</span>
+        <Button
+          size="sm"
+          className="bg-gradient-brand text-xs px-3 h-8"
+          disabled={slides.length === 0}
+        >
+          <Download className="w-4 h-4 mr-1" />
+          Скачать
+        </Button>
+      </div>
+
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
