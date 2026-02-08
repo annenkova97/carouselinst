@@ -14,7 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      project_slides: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string | null
+          position_mode: string
+          project_id: string
+          slide_order: number
+          text: string
+          text_position: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          position_mode?: string
+          project_id: string
+          slide_order?: number
+          text?: string
+          text_position?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          position_mode?: string
+          project_id?: string
+          slide_order?: number
+          text?: string
+          text_position?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_slides_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          aspect_ratio: string
+          created_at: string
+          id: string
+          text_style: Json
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aspect_ratio?: string
+          created_at?: string
+          id?: string
+          text_style?: Json
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aspect_ratio?: string
+          created_at?: string
+          id?: string
+          text_style?: Json
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,10 +1,15 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { EditorSidebar } from "@/components/editor/EditorSidebar";
 import { SlidePreview } from "@/components/editor/SlidePreview";
 import { CarouselPreview } from "@/components/editor/CarouselPreview";
 import { Button } from "@/components/ui/button";
-import { Download, Save, ChevronLeft, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Download, Save, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { useProjectStorage } from "@/hooks/useProjectStorage";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export interface SlideData {
   id: string;
@@ -49,11 +54,64 @@ const defaultTextStyle: TextStyle = {
 };
 
 const Editor = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const projectId = searchParams.get("project");
+  
+  const { user } = useAuth();
+  const { isLoading, saveProject, loadProject } = useProjectStorage();
+  
   const [slides, setSlides] = useState<SlideData[]>([]);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
   const [textStyle, setTextStyle] = useState<TextStyle>(defaultTextStyle);
   const [fullText, setFullText] = useState("");
+  const [projectTitle, setProjectTitle] = useState("Без названия");
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load project if ID is provided
+  useEffect(() => {
+    if (projectId && user) {
+      loadProject(projectId).then((project) => {
+        if (project) {
+          setCurrentProjectId(project.id);
+          setProjectTitle(project.title);
+          setAspectRatio(project.aspectRatio);
+          setTextStyle(project.textStyle);
+          setSlides(project.slides);
+        }
+      });
+    }
+  }, [projectId, user, loadProject]);
+
+  const handleSaveProject = useCallback(async () => {
+    if (!user) {
+      toast.error("Войдите в аккаунт для сохранения");
+      navigate("/login");
+      return;
+    }
+    
+    if (slides.length === 0) {
+      toast.error("Добавьте хотя бы одно изображение");
+      return;
+    }
+    
+    setIsSaving(true);
+    const savedId = await saveProject(
+      currentProjectId,
+      projectTitle,
+      aspectRatio,
+      textStyle,
+      slides
+    );
+    
+    if (savedId && !currentProjectId) {
+      setCurrentProjectId(savedId);
+      navigate(`/editor?project=${savedId}`, { replace: true });
+    }
+    setIsSaving(false);
+  }, [user, slides, currentProjectId, projectTitle, aspectRatio, textStyle, saveProject, navigate]);
 
   const handleImagesUpload = useCallback((files: File[]) => {
     const newSlides: SlideData[] = files.map((file, index) => ({
@@ -202,7 +260,7 @@ const Editor = () => {
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col">
             {/* Toolbar */}
-            <div className="h-14 border-b bg-card flex items-center justify-between px-4">
+            <div className="h-14 border-b bg-card flex items-center justify-between px-4 gap-4">
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -225,10 +283,26 @@ const Editor = () => {
                 </Button>
               </div>
 
+              <Input
+                value={projectTitle}
+                onChange={(e) => setProjectTitle(e.target.value)}
+                className="max-w-[200px] text-center font-medium"
+                placeholder="Название проекта"
+              />
+
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <Save className="w-4 h-4 mr-2" />
-                  Сохранить
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleSaveProject}
+                  disabled={isSaving || isLoading}
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  {currentProjectId ? "Сохранить" : "Сохранить как"}
                 </Button>
                 <Button 
                   size="sm" 
