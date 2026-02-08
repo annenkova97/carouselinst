@@ -305,16 +305,16 @@ export const MobileEditor = ({
         )}
 
         {/* Thumbnail Strip with DnD */}
-        <div className="h-20 border-t bg-card">
+        <div className="h-16 border-t bg-card">
           <ScrollArea className="h-full w-full">
-            <div className="flex items-center gap-2 p-2 h-full">
+            <div className="flex items-center gap-2 p-1.5 h-full">
               {/* Add photo button */}
               <button
-                className="flex-shrink-0 w-14 h-14 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary transition-colors"
+                className="flex-shrink-0 w-12 h-12 rounded-lg border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary transition-colors"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={slides.length >= 10}
               >
-                <Plus className="w-5 h-5 text-muted-foreground" />
+                <Plus className="w-4 h-4 text-muted-foreground" />
               </button>
 
               {/* Sortable slides */}
@@ -342,6 +342,17 @@ export const MobileEditor = ({
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
+        </div>
+
+        {/* Text Input Area - always visible */}
+        <div className="px-3 py-2 border-t bg-card">
+          <Textarea
+            placeholder={activeSlide ? `Текст для слайда ${activeSlideIndex + 1}...` : "Выберите фото для добавления текста"}
+            className="w-full min-h-[60px] max-h-[80px] text-sm resize-none"
+            value={activeSlide?.text || ""}
+            onChange={(e) => activeSlide && onSlideTextChange(activeSlide.id, e.target.value)}
+            disabled={!activeSlide}
+          />
         </div>
       </div>
 
