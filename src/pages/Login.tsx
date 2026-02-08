@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Loader2 } from "lucide-react";
-import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/supabase-auth";
+import { signInWithEmail, signUpWithEmail } from "@/lib/supabase-auth";
+import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -23,7 +24,14 @@ const Login = () => {
   const handleGoogleAuth = async () => {
     setIsLoading(true);
     try {
-      await signInWithGoogle();
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (error) {
+        toast.error("Ошибка входа через Google", {
+          description: error.message,
+        });
+      }
       // Redirect handled by OAuth flow
     } catch (error: any) {
       toast.error("Ошибка входа через Google", {
