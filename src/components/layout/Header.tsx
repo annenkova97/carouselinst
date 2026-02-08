@@ -57,6 +57,14 @@ export const Header = () => {
             >
               Главная
             </Link>
+            {user && (
+              <Link
+                to="/my-projects"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Мои проекты
+              </Link>
+            )}
             <Link
               to="/templates"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -141,6 +149,15 @@ export const Header = () => {
               >
                 Главная
               </Link>
+              {user && (
+                <Link
+                  to="/my-projects"
+                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Мои проекты
+                </Link>
+              )}
               <Link
                 to="/templates"
                 className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
