@@ -53,15 +53,6 @@ export const MobileStyleSheet = ({
           <Label>Формат</Label>
           <div className="flex gap-2">
             <Button
-              variant={aspectRatio === "1:1" ? "default" : "outline"}
-              size="sm"
-              className={`flex-1 ${aspectRatio === "1:1" ? "bg-gradient-brand" : ""}`}
-              onClick={() => onAspectRatioChange("1:1")}
-            >
-              <Square className="w-4 h-4 mr-2" />
-              1:1
-            </Button>
-            <Button
               variant={aspectRatio === "4:5" ? "default" : "outline"}
               size="sm"
               className={`flex-1 ${aspectRatio === "4:5" ? "bg-gradient-brand" : ""}`}
@@ -69,6 +60,15 @@ export const MobileStyleSheet = ({
             >
               <RectangleVertical className="w-4 h-4 mr-2" />
               4:5
+            </Button>
+            <Button
+              variant={aspectRatio === "1:1" ? "default" : "outline"}
+              size="sm"
+              className={`flex-1 ${aspectRatio === "1:1" ? "bg-gradient-brand" : ""}`}
+              onClick={() => onAspectRatioChange("1:1")}
+            >
+              <Square className="w-4 h-4 mr-2" />
+              1:1
             </Button>
           </div>
         </div>

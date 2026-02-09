@@ -316,7 +316,7 @@ export const MobileEditor = ({
             <div
               ref={containerRef}
               className={`relative ${aspectRatioClass} w-full bg-muted rounded-xl overflow-hidden shadow-soft`}
-              style={{ maxWidth: aspectRatio === "1:1" ? "calc(100dvh - 340px)" : "calc((100dvh - 340px) * 0.8)" }}
+              style={{ maxWidth: aspectRatio === "1:1" ? "calc(100dvh - 400px)" : "calc((100dvh - 400px) * 0.8)" }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
