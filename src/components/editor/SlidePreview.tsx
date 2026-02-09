@@ -110,9 +110,9 @@ export const SlidePreview = ({
   }, [isDragging]);
 
   return (
-    <div className="flex flex-col gap-2 h-full">
+    <div className="flex flex-col gap-2 h-full min-h-0">
       {/* Position mode buttons */}
-      <div className="flex items-center justify-center gap-2">
+      <div className="flex items-center justify-center gap-2 flex-shrink-0">
         <Button
           variant={slide.positionMode === "fixed-top" ? "default" : "outline"}
           size="sm"
@@ -149,7 +149,7 @@ export const SlidePreview = ({
 
       {/* Image crop controls */}
       {slide.image && (
-        <div className="flex items-center gap-4 px-4">
+        <div className="flex items-center gap-4 px-4 flex-shrink-0">
           <div className="flex items-center gap-2 flex-1">
             <ZoomOut className="w-4 h-4 text-muted-foreground" />
             <Slider
@@ -176,72 +176,80 @@ export const SlidePreview = ({
         </div>
       )}
 
-      {/* Canvas */}
-      <div
-        ref={containerRef}
-        className={`relative ${aspectRatioClass} w-full max-w-sm bg-muted rounded-lg overflow-hidden shadow-soft mx-auto cursor-${
-          slide.positionMode === "manual" ? "move" : "default"
-        }`}
-        onMouseMove={handleMouseMove}
-      >
-        {/* Image */}
-        {slide.image && (
-          <img
-            src={slide.image}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-            draggable={false}
-            style={{
-              transform: `scale(${slide.imageScale}) translate(${slide.imageOffset.x}%, ${slide.imageOffset.y}%)`,
-            }}
-          />
-        )}
-
-        {/* Text overlay */}
+      {/* Canvas - fills remaining space */}
+      <div className="flex-1 min-h-0 flex items-center justify-center">
         <div
-          ref={textRef}
-          className={`absolute ${getFontClass(textStyle.fontFamily)} font-semibold text-center max-w-[80%] ${
-            slide.positionMode === "manual" ? "cursor-move" : ""
+          ref={containerRef}
+          className={`relative bg-muted rounded-lg overflow-hidden shadow-soft cursor-${
+            slide.positionMode === "manual" ? "move" : "default"
           }`}
-          style={textStyles}
-          onMouseDown={handleMouseDown}
-          onDoubleClick={() => setIsEditing(true)}
+          style={{
+            aspectRatio: aspectRatio === "1:1" ? "1/1" : "4/5",
+            height: "100%",
+            maxHeight: "100%",
+            width: "auto",
+          }}
+          onMouseMove={handleMouseMove}
         >
-          {/* Background */}
-          {textStyle.backgroundEnabled && slide.text && (
-            <div
-              className="absolute inset-0 -m-3"
-              style={backgroundStyles}
-            />
-          )}
-          
-          {/* Text content */}
-          {isEditing ? (
-            <Textarea
-              value={slide.text}
-              onChange={(e) => onTextChange(e.target.value)}
-              onBlur={() => setIsEditing(false)}
-              autoFocus
-              className="relative z-10 bg-transparent border-none resize-none text-center focus:ring-0"
+          {/* Image */}
+          {slide.image && (
+            <img
+              src={slide.image}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+              draggable={false}
               style={{
-                fontSize: `${textStyle.fontSize}px`,
-                color: textStyle.color,
-                fontFamily: "inherit",
+                transform: `scale(${slide.imageScale}) translate(${slide.imageOffset.x}%, ${slide.imageOffset.y}%)`,
               }}
             />
-          ) : (
-            <span className="relative z-10 whitespace-pre-wrap">
-              {slide.text || "Дважды кликните для редактирования"}
-            </span>
+          )}
+
+          {/* Text overlay */}
+          <div
+            ref={textRef}
+            className={`absolute ${getFontClass(textStyle.fontFamily)} font-semibold text-center max-w-[80%] ${
+              slide.positionMode === "manual" ? "cursor-move" : ""
+            }`}
+            style={textStyles}
+            onMouseDown={handleMouseDown}
+            onDoubleClick={() => setIsEditing(true)}
+          >
+            {/* Background */}
+            {textStyle.backgroundEnabled && slide.text && (
+              <div
+                className="absolute inset-0 -m-3"
+                style={backgroundStyles}
+              />
+            )}
+            
+            {/* Text content */}
+            {isEditing ? (
+              <Textarea
+                value={slide.text}
+                onChange={(e) => onTextChange(e.target.value)}
+                onBlur={() => setIsEditing(false)}
+                autoFocus
+                className="relative z-10 bg-transparent border-none resize-none text-center focus:ring-0"
+                style={{
+                  fontSize: `${textStyle.fontSize}px`,
+                  color: textStyle.color,
+                  fontFamily: "inherit",
+                }}
+              />
+            ) : (
+              <span className="relative z-10 whitespace-pre-wrap">
+                {slide.text || "Дважды кликните для редактирования"}
+              </span>
+            )}
+          </div>
+
+          {/* Drag indicator */}
+          {slide.positionMode === "manual" && !isEditing && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/50 text-white text-xs">
+              Перетащите текст
+            </div>
           )}
         </div>
-
-        {/* Drag indicator */}
-        {slide.positionMode === "manual" && !isEditing && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/50 text-white text-xs">
-            Перетащите текст
-          </div>
-        )}
       </div>
     </div>
   );
