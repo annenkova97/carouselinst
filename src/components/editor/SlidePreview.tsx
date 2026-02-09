@@ -110,7 +110,7 @@ export const SlidePreview = ({
   }, [isDragging]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2 h-full">
       {/* Position mode buttons */}
       <div className="flex items-center justify-center gap-2">
         <Button
@@ -179,7 +179,7 @@ export const SlidePreview = ({
       {/* Canvas */}
       <div
         ref={containerRef}
-        className={`relative ${aspectRatioClass} w-full max-w-lg bg-muted rounded-lg overflow-hidden shadow-soft cursor-${
+        className={`relative ${aspectRatioClass} w-full max-w-sm bg-muted rounded-lg overflow-hidden shadow-soft mx-auto cursor-${
           slide.positionMode === "manual" ? "move" : "default"
         }`}
         onMouseMove={handleMouseMove}
