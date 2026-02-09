@@ -23,7 +23,6 @@ import {
   AlignVerticalJustifyStart,
   AlignVerticalJustifyCenter,
   AlignVerticalJustifyEnd,
-  Wand2,
   Move,
   ChevronLeft,
   ChevronRight,
@@ -87,6 +86,7 @@ interface MobileEditorProps {
   onPositionModeChange: (slideId: string, mode: SlideData["positionMode"]) => void;
   onSaveProject: () => void;
   onProjectTitleChange: (title: string) => void;
+  onDownload: () => void;
 }
 
 const getFontClass = (fontFamily: string) => {
@@ -126,6 +126,7 @@ export const MobileEditor = ({
   onPositionModeChange,
   onSaveProject,
   onProjectTitleChange,
+  onDownload,
 }: MobileEditorProps) => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -283,6 +284,7 @@ export const MobileEditor = ({
             size="sm"
             className="bg-gradient-brand text-xs px-2 h-8"
             disabled={slides.length === 0}
+            onClick={onDownload}
           >
             <Download className="w-4 h-4" />
           </Button>
@@ -387,7 +389,6 @@ export const MobileEditor = ({
               { mode: "fixed-top" as const, icon: AlignVerticalJustifyStart, label: "Верх" },
               { mode: "fixed-center" as const, icon: AlignVerticalJustifyCenter, label: "Центр" },
               { mode: "fixed-bottom" as const, icon: AlignVerticalJustifyEnd, label: "Низ" },
-              { mode: "smart" as const, icon: Wand2, label: "Умное" },
               { mode: "manual" as const, icon: Move, label: "Ручное" },
             ].map(({ mode, icon: Icon, label }) => (
               <button
@@ -447,10 +448,10 @@ export const MobileEditor = ({
         </div>
 
         {/* Text Input Area - always visible */}
-        <div className="px-3 py-2 border-t bg-card space-y-2">
+        <div className="px-3 py-2 border-t bg-card space-y-2 shrink-0">
           <Textarea
             placeholder="Введите весь текст поста здесь..."
-            className="w-full min-h-[70px] max-h-[90px] text-sm resize-none"
+            className="w-full min-h-[60px] max-h-[80px] text-sm resize-none"
             value={fullText}
             onChange={(e) => onFullTextChange(e.target.value)}
           />
@@ -458,28 +459,28 @@ export const MobileEditor = ({
             <Button
               variant={isRecording ? "destructive" : "outline"}
               size="sm"
-              className="flex-1"
+              className="flex-1 h-8"
               onClick={isRecording ? stopRecording : startRecording}
             >
               {isRecording ? (
                 <>
-                  <MicOff className="w-4 h-4 mr-1" />
+                  <MicOff className="w-3.5 h-3.5 mr-1" />
                   Стоп
                 </>
               ) : (
                 <>
-                  <Mic className="w-4 h-4 mr-1" />
+                  <Mic className="w-3.5 h-3.5 mr-1" />
                   Голос
                 </>
               )}
             </Button>
             <Button
               size="sm"
-              className="flex-1 bg-gradient-brand"
+              className="flex-1 h-8 bg-gradient-brand"
               onClick={onDistributeText}
               disabled={!fullText.trim() || slides.length === 0}
             >
-              <Sparkles className="w-4 h-4 mr-1" />
+              <Sparkles className="w-3.5 h-3.5 mr-1" />
               Распределить
             </Button>
           </div>
@@ -487,7 +488,7 @@ export const MobileEditor = ({
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="flex items-center justify-around py-3 px-4 border-t bg-card safe-area-bottom">
+      <div className="flex items-center justify-around py-2 px-4 border-t bg-card safe-area-bottom shrink-0">
         {/* Text Sheet */}
         <Sheet open={isTextSheetOpen} onOpenChange={setIsTextSheetOpen}>
           <SheetTrigger asChild>

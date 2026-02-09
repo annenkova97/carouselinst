@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useProjectStorage, Project } from "@/hooks/useProjectStorage";
-import { Plus, Trash2, Loader2, FolderOpen } from "lucide-react";
+import { Plus, Trash2, Loader2, FolderOpen, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import {
@@ -26,6 +26,7 @@ const MyProjects = () => {
   const navigate = useNavigate();
   const { projects, loadUserProjects, deleteProject, isLoading } = useProjectStorage();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [thumbnails, setThumbnails] = useState<Record<string, string | null>>({});
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -35,9 +36,32 @@ const MyProjects = () => {
 
   useEffect(() => {
     if (user) {
-      loadUserProjects();
+      loadUserProjects().then((loadedProjects) => {
+        // Load first slide thumbnail for each project
+        loadedProjects.forEach((project) => {
+          loadProjectThumbnail(project.id);
+        });
+      });
     }
   }, [user, loadUserProjects]);
+
+  const loadProjectThumbnail = async (projectId: string) => {
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data } = await supabase
+        .from('project_slides')
+        .select('image_url')
+        .eq('project_id', projectId)
+        .order('slide_order')
+        .limit(1);
+      
+      if (data && data.length > 0 && data[0].image_url) {
+        setThumbnails(prev => ({ ...prev, [projectId]: data[0].image_url }));
+      }
+    } catch (error) {
+      console.error('Error loading thumbnail:', error);
+    }
+  };
 
   const handleDeleteProject = async (projectId: string) => {
     setDeletingId(projectId);
@@ -100,11 +124,19 @@ const MyProjects = () => {
                 >
                   <CardContent className="p-4">
                     <div 
-                      className={`aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center ${
+                      className={`bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden ${
                         project.aspectRatio === "4:5" ? "aspect-[4/5]" : "aspect-square"
                       }`}
                     >
-                      <FolderOpen className="w-12 h-12 text-muted-foreground" />
+                      {thumbnails[project.id] ? (
+                        <img 
+                          src={thumbnails[project.id]!} 
+                          alt={project.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="w-12 h-12 text-muted-foreground" />
+                      )}
                     </div>
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">

@@ -71,12 +71,6 @@ export const Header = () => {
             >
               Шаблоны
             </Link>
-            <Link
-              to="/pricing"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Тарифы
-            </Link>
           </nav>
 
           {/* Desktop Auth Buttons */}
@@ -164,13 +158,6 @@ export const Header = () => {
                 onClick={() => setIsMenuOpen(false)}
               >
                 Шаблоны
-              </Link>
-              <Link
-                to="/pricing"
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Тарифы
               </Link>
               <div className="pt-3 border-t flex flex-col gap-2">
                 {!loading && user ? (
