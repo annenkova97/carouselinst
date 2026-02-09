@@ -5,7 +5,6 @@ import {
   AlignVerticalJustifyStart, 
   AlignVerticalJustifyCenter, 
   AlignVerticalJustifyEnd,
-  Wand2,
   Move
 } from "lucide-react";
 import type { SlideData, TextStyle, AspectRatio } from "@/pages/Editor";
@@ -129,14 +128,6 @@ export const SlidePreview = ({
         >
           <AlignVerticalJustifyEnd className="w-4 h-4 mr-2" />
           Низ
-        </Button>
-        <Button
-          variant={slide.positionMode === "smart" ? "default" : "outline"}
-          size="sm"
-          onClick={() => onPositionModeChange("smart")}
-        >
-          <Wand2 className="w-4 h-4 mr-2" />
-          Умное
         </Button>
         <Button
           variant={slide.positionMode === "manual" ? "default" : "outline"}

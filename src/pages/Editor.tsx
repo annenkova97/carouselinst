@@ -18,7 +18,7 @@ export interface SlideData {
   image: string | null;
   text: string;
   textPosition: { x: number; y: number };
-  positionMode: "fixed-top" | "fixed-center" | "fixed-bottom" | "smart" | "manual";
+  positionMode: "fixed-top" | "fixed-center" | "fixed-bottom" | "manual";
 }
 
 export interface TextStyle {
@@ -172,6 +172,73 @@ const Editor = () => {
     setActiveSlideIndex((prev) => Math.max(0, prev - 1));
   }, []);
 
+  const handleDownload = useCallback(async () => {
+    if (slides.length === 0) return;
+    try {
+      toast.info("Подготовка файлов...");
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i];
+        if (!slide.image) continue;
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) continue;
+        const size = aspectRatio === "1:1" ? { w: 1080, h: 1080 } : { w: 1080, h: 1350 };
+        canvas.width = size.w;
+        canvas.height = size.h;
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error("Image load failed"));
+          img.src = slide.image!;
+        });
+        const imgRatio = img.width / img.height;
+        const canvasRatio = size.w / size.h;
+        let sx = 0, sy = 0, sw = img.width, sh = img.height;
+        if (imgRatio > canvasRatio) { sw = img.height * canvasRatio; sx = (img.width - sw) / 2; }
+        else { sh = img.width / canvasRatio; sy = (img.height - sh) / 2; }
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size.w, size.h);
+        if (slide.text) {
+          const scale = size.w / 500;
+          const fontSize = textStyle.fontSize * scale;
+          ctx.font = `600 ${fontSize}px ${textStyle.fontFamily}, sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          const x = (slide.textPosition.x / 100) * size.w;
+          const y = (slide.textPosition.y / 100) * size.h;
+          if (textStyle.backgroundEnabled) {
+            const metrics = ctx.measureText(slide.text);
+            const pad = 20;
+            ctx.fillStyle = textStyle.backgroundColor;
+            ctx.globalAlpha = textStyle.backgroundOpacity / 100;
+            ctx.beginPath();
+            ctx.roundRect(x - metrics.width / 2 - pad, y - fontSize / 2 - pad, metrics.width + pad * 2, fontSize + pad * 2, textStyle.backgroundRadius);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+          if (textStyle.shadowEnabled) { ctx.shadowColor = textStyle.shadowColor; ctx.shadowBlur = textStyle.shadowBlur * 2; ctx.shadowOffsetY = 4; }
+          if (textStyle.strokeEnabled) { ctx.strokeStyle = textStyle.strokeColor; ctx.lineWidth = textStyle.strokeWidth * 2; ctx.strokeText(slide.text, x, y); }
+          ctx.fillStyle = textStyle.color;
+          ctx.fillText(slide.text, x, y);
+          ctx.shadowColor = "transparent"; ctx.shadowBlur = 0;
+        }
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `slide-${i + 1}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      }
+      toast.success("Слайды скачаны!");
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Ошибка скачивания");
+    }
+  }, [slides, aspectRatio, textStyle]);
+
   const distributeText = useCallback(() => {
     if (!fullText.trim() || slides.length === 0) return;
     
@@ -260,6 +327,7 @@ const Editor = () => {
         onPositionModeChange={handlePositionModeChange}
         onSaveProject={handleSaveProject}
         onProjectTitleChange={setProjectTitle}
+        onDownload={handleDownload}
       />
     );
   }
@@ -340,6 +408,7 @@ const Editor = () => {
                   size="sm" 
                   className="bg-gradient-brand hover:opacity-90"
                   disabled={slides.length === 0}
+                  onClick={handleDownload}
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Скачать

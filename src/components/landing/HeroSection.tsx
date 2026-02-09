@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Mic, Move, Palette, Download, Zap } from "lucide-react";
+import { ArrowRight, Mic, Palette, Download, Zap, Type } from "lucide-react";
+import { memo } from "react";
 
 export const HeroSection = () => {
   return (
@@ -13,12 +14,6 @@ export const HeroSection = () => {
 
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-secondary-foreground text-sm font-medium mb-6 animate-fade-in">
-            <Sparkles className="w-4 h-4" />
-            <span>Новый AI-ассистент для улучшения текста</span>
-          </div>
-
           {/* Heading */}
           <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
             Создавайте{" "}
@@ -28,8 +23,8 @@ export const HeroSection = () => {
 
           {/* Subheading */}
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto animate-fade-in">
-            Загрузите фотографии, надиктуйте текст голосом, и наш AI разместит его так, 
-            чтобы не перекрывать важные детали. Готово за минуту!
+            Загрузите фотографии, надиктуйте текст голосом, настройте стиль 
+            и скачайте готовую карусель. Готово за минуту!
           </p>
 
           {/* CTA Buttons */}
@@ -44,21 +39,15 @@ export const HeroSection = () => {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8" asChild>
-              <Link to="/templates">
-                Посмотреть шаблоны
-              </Link>
-            </Button>
           </div>
 
           {/* Features preview */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            <FeatureCard icon={Mic} title="Голосовой ввод" delay="0ms" />
-            <FeatureCard icon={Move} title="Умное размещение" delay="100ms" />
-            <FeatureCard icon={Palette} title="10 шрифтов" delay="200ms" />
-            <FeatureCard icon={Sparkles} title="AI-улучшение" delay="300ms" />
-            <FeatureCard icon={Download} title="Экспорт в ZIP" delay="400ms" />
-            <FeatureCard icon={Zap} title="Готово за минуту" delay="500ms" />
+            <FeatureCard icon={Mic} title="Голосовой ввод" />
+            <FeatureCard icon={Type} title="10 шрифтов" />
+            <FeatureCard icon={Palette} title="Настройка стиля" />
+            <FeatureCard icon={Download} title="Экспорт в ZIP" />
+            <FeatureCard icon={Zap} title="Готово за минуту" />
           </div>
         </div>
       </div>
@@ -69,19 +58,17 @@ export const HeroSection = () => {
 interface FeatureCardProps {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
-  delay: string;
 }
 
-const FeatureCard = ({ icon: Icon, title, delay }: FeatureCardProps) => {
+const FeatureCard = memo(({ icon: Icon, title }: FeatureCardProps) => {
   return (
-    <div 
-      className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card border shadow-soft animate-fade-in"
-      style={{ animationDelay: delay }}
-    >
+    <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-card border shadow-soft">
       <div className="w-10 h-10 rounded-lg bg-gradient-brand flex items-center justify-center flex-shrink-0">
         <Icon className="w-5 h-5 text-white" />
       </div>
       <span className="text-sm font-medium text-foreground">{title}</span>
     </div>
   );
-};
+});
+
+FeatureCard.displayName = "FeatureCard";
