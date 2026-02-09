@@ -276,8 +276,8 @@ export const MobileEditor = ({
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
-            size="sm"
-            className="text-xs px-2 h-8"
+            size="icon"
+            className="h-8 w-8"
             onClick={onSaveProject}
             disabled={isSaving || slides.length === 0}
           >
@@ -288,8 +288,8 @@ export const MobileEditor = ({
             )}
           </Button>
           <Button
-            size="sm"
-            className="bg-gradient-brand text-xs px-2 h-8"
+            size="icon"
+            className="bg-gradient-brand h-8 w-8"
             disabled={slides.length === 0}
             onClick={onDownload}
           >
@@ -311,12 +311,12 @@ export const MobileEditor = ({
       {/* Main Preview Area - fills remaining space */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Preview Canvas */}
-        <div className="flex-1 flex items-center justify-center p-3 bg-muted/30">
+        <div className="flex items-center justify-center p-2 bg-muted/30">
           {activeSlide ? (
             <div
               ref={containerRef}
-              className={`relative ${aspectRatioClass} w-full max-h-full bg-muted rounded-xl overflow-hidden shadow-soft`}
-              style={{ maxWidth: aspectRatio === "1:1" ? "calc(100dvh - 280px)" : "calc((100dvh - 280px) * 0.8)" }}
+              className={`relative ${aspectRatioClass} w-full bg-muted rounded-xl overflow-hidden shadow-soft`}
+              style={{ maxWidth: aspectRatio === "1:1" ? "calc(100dvh - 340px)" : "calc((100dvh - 340px) * 0.8)" }}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
