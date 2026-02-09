@@ -29,7 +29,7 @@ import {
   ChevronRight,
   Sparkles,
   Plus,
-  ArrowLeft,
+  Layers,
   Download,
   Mic,
   MicOff,
@@ -38,6 +38,18 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { signOut } from "@/lib/supabase-auth";
+import { toast } from "sonner";
+import { LogOut, User } from "lucide-react";
 import type { SlideData, TextStyle, AspectRatio } from "@/pages/Editor";
 import { MobileSortableSlide } from "./MobileSortableSlide";
 import { MobileStyleSheet } from "./MobileStyleSheet";
@@ -136,6 +148,44 @@ export const MobileEditor = ({
   onImageScaleChange,
 }: MobileEditorProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const UserAvatar = () => {
+    const userInitials = user?.user_metadata?.full_name
+      ?.split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
+
+    if (!user) {
+      return (
+        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+          <Link to="/login"><User className="w-4 h-4" /></Link>
+        </Button>
+      );
+    }
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full p-0">
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={user.user_metadata?.avatar_url} alt="Avatar" />
+              <AvatarFallback className="text-xs">{userInitials}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link to="/my-projects"><User className="mr-2 h-4 w-4" />Мои проекты</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={async () => { await signOut(); toast.success("Вы вышли"); navigate("/"); }} className="text-destructive">
+            <LogOut className="mr-2 h-4 w-4" />Выйти
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isTextSheetOpen, setIsTextSheetOpen] = useState(false);
   const [isStyleSheetOpen, setIsStyleSheetOpen] = useState(false);
@@ -260,19 +310,12 @@ export const MobileEditor = ({
     <div className="flex flex-col h-[100dvh] bg-background">
       {/* Top Header Bar */}
       <div className="flex items-center justify-between px-3 py-2 border-b bg-card safe-area-top">
-        <button
-          className="flex items-center gap-1 text-foreground"
-          onClick={() => navigate("/")}
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <input
-          type="text"
-          value={projectTitle}
-          onChange={(e) => onProjectTitleChange(e.target.value)}
-          className="text-sm font-semibold text-foreground bg-transparent text-center border-none outline-none max-w-[120px]"
-          placeholder="Без названия"
-        />
+        <Link to="/" className="flex items-center gap-1.5">
+          <div className="w-7 h-7 rounded-md bg-gradient-brand flex items-center justify-center">
+            <Layers className="w-4 h-4 text-white" />
+          </div>
+          <span className="font-semibold text-sm text-gradient-brand">CarouselMaker</span>
+        </Link>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -295,6 +338,7 @@ export const MobileEditor = ({
           >
             <Download className="w-4 h-4" />
           </Button>
+          <UserAvatar />
         </div>
       </div>
 

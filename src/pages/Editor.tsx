@@ -296,53 +296,66 @@ const Editor = () => {
   const distributeText = useCallback(() => {
     if (!fullText.trim() || slides.length === 0) return;
 
-    // Split by sentences, keeping different delimiters
-    const sentences = fullText.split(/(?<=[.!?。！？])\s+/).filter(s => s.trim().length > 0);
     const slidesCount = slides.length;
-
-    // If we have fewer sentences than slides, split by paragraphs or evenly
     let textParts: string[] = [];
-    if (sentences.length >= slidesCount) {
-      // Distribute sentences evenly across slides
-      const sentencesPerSlide = Math.ceil(sentences.length / slidesCount);
-      for (let i = 0; i < slidesCount; i++) {
-        const start = i * sentencesPerSlide;
-        const end = Math.min(start + sentencesPerSlide, sentences.length);
-        const part = sentences.slice(start, end).join(" ");
-        textParts.push(part);
+
+    // Check if text contains explicit newline breaks - these are user-intended slide breaks
+    const paragraphs = fullText.split(/\n+/).filter(p => p.trim().length > 0);
+    
+    if (paragraphs.length > 1) {
+      // User used Enter to separate text for slides
+      if (paragraphs.length <= slidesCount) {
+        // Assign each paragraph to a slide
+        textParts = [...paragraphs];
+      } else {
+        // More paragraphs than slides - merge extras into last slides
+        for (let i = 0; i < slidesCount; i++) {
+          if (i < slidesCount - 1) {
+            textParts.push(paragraphs[i] || "");
+          } else {
+            textParts.push(paragraphs.slice(i).join(" "));
+          }
+        }
       }
     } else {
-      // Try splitting by newlines/paragraphs
-      const paragraphs = fullText.split(/\n+/).filter(p => p.trim().length > 0);
-      if (paragraphs.length >= slidesCount) {
-        const partsPerSlide = Math.ceil(paragraphs.length / slidesCount);
+      // No newlines - split by sentences or words
+      const sentences = fullText.split(/(?<=[.!?。！？])\s+/).filter(s => s.trim().length > 0);
+      
+      if (sentences.length >= slidesCount) {
+        const sentencesPerSlide = Math.ceil(sentences.length / slidesCount);
         for (let i = 0; i < slidesCount; i++) {
-          const start = i * partsPerSlide;
-          const end = Math.min(start + partsPerSlide, paragraphs.length);
-          const part = paragraphs.slice(start, end).join("\n");
-          textParts.push(part);
+          const start = i * sentencesPerSlide;
+          const end = Math.min(start + sentencesPerSlide, sentences.length);
+          textParts.push(sentences.slice(start, end).join(" "));
         }
       } else {
-        // Split by words evenly
         const words = fullText.trim().split(/\s+/);
         const wordsPerSlide = Math.ceil(words.length / slidesCount);
         for (let i = 0; i < slidesCount; i++) {
           const start = i * wordsPerSlide;
           const end = Math.min(start + wordsPerSlide, words.length);
-          const part = words.slice(start, end).join(" ");
-          textParts.push(part);
+          textParts.push(words.slice(start, end).join(" "));
         }
       }
     }
 
-    // Ensure we have text for all slides
+    // Pad with empty strings if needed
     while (textParts.length < slidesCount) {
       textParts.push("");
     }
+
+    // Update slides with distributed text
     setSlides(prev => prev.map((slide, index) => ({
       ...slide,
       text: textParts[index] || ""
     })));
+
+    // Update fullText to show numbered distribution
+    const numberedText = textParts
+      .map((part, i) => `${i + 1}. ${part}`)
+      .filter((_, i) => textParts[i].trim().length > 0)
+      .join("\n");
+    setFullText(numberedText);
   }, [fullText, slides.length]);
   const activeSlide = slides[activeSlideIndex];
 
