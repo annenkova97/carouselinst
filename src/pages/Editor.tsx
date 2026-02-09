@@ -391,7 +391,7 @@ const Editor = () => {
             </div>
 
             {/* Canvas Area */}
-            <div className="flex-1 flex items-center justify-center p-8 overflow-auto px-[2px] py-[2px]">
+            <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
               {activeSlide ? <SlidePreview slide={activeSlide} aspectRatio={aspectRatio} textStyle={textStyle} onTextChange={text => handleSlideTextChange(activeSlide.id, text)} onPositionChange={pos => handlePositionChange(activeSlide.id, pos)} onPositionModeChange={mode => handlePositionModeChange(activeSlide.id, mode)} onImageOffsetChange={offset => handleImageOffsetChange(activeSlide.id, offset)} onImageScaleChange={scale => handleImageScaleChange(activeSlide.id, scale)} /> : <div className="text-center text-muted-foreground">
                   <p className="text-lg mb-2">Нет загруженных фотографий</p>
                   <p className="text-sm">Загрузите изображения в боковой панели слева</p>
