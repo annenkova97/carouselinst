@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { Slider } from "@/components/ui/slider";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +35,8 @@ import {
   MicOff,
   Save,
   Loader2,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import type { SlideData, TextStyle, AspectRatio } from "@/pages/Editor";
 import { MobileSortableSlide } from "./MobileSortableSlide";
@@ -87,6 +90,8 @@ interface MobileEditorProps {
   onSaveProject: () => void;
   onProjectTitleChange: (title: string) => void;
   onDownload: () => void;
+  onImageOffsetChange: (slideId: string, offset: { x: number; y: number }) => void;
+  onImageScaleChange: (slideId: string, scale: number) => void;
 }
 
 const getFontClass = (fontFamily: string) => {
@@ -127,6 +132,8 @@ export const MobileEditor = ({
   onSaveProject,
   onProjectTitleChange,
   onDownload,
+  onImageOffsetChange,
+  onImageScaleChange,
 }: MobileEditorProps) => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -321,6 +328,9 @@ export const MobileEditor = ({
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover"
                   draggable={false}
+                  style={{
+                    transform: `scale(${activeSlide.imageScale}) translate(${activeSlide.imageOffset.x}%, ${activeSlide.imageOffset.y}%)`,
+                  }}
                 />
               )}
 
@@ -404,6 +414,35 @@ export const MobileEditor = ({
                 <span className="text-[10px]">{label}</span>
               </button>
             ))}
+          </div>
+        )}
+
+        {/* Image Crop Controls */}
+        {activeSlide?.image && (
+          <div className="flex items-center gap-3 px-3 py-1.5 bg-card border-t">
+            <ZoomOut className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <Slider
+              value={[activeSlide.imageScale]}
+              onValueChange={([v]) => onImageScaleChange(activeSlide.id, v)}
+              min={1}
+              max={3}
+              step={0.05}
+              className="flex-1"
+            />
+            <ZoomIn className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            {activeSlide.imageScale > 1 && (
+              <>
+                <div className="w-px h-4 bg-border" />
+                <Slider
+                  value={[activeSlide.imageOffset.y]}
+                  onValueChange={([v]) => onImageOffsetChange(activeSlide.id, { ...activeSlide.imageOffset, y: v })}
+                  min={-30}
+                  max={30}
+                  step={1}
+                  className="flex-1"
+                />
+              </>
+            )}
           </div>
         )}
 

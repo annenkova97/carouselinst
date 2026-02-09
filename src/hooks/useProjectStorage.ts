@@ -199,6 +199,8 @@ export function useProjectStorage() {
         text: slide.text,
         textPosition: slide.text_position,
         positionMode: slide.position_mode as SlideData['positionMode'],
+        imageOffset: { x: 0, y: 0 },
+        imageScale: 1,
       }));
       
       const project: Project = {
