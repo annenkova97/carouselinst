@@ -467,16 +467,6 @@ const Editor = () => {
               )}
             </div>
 
-            {/* Carousel strip */}
-            {slides.length > 0 && (
-              <CarouselPreview
-                slides={slides}
-                activeSlideIndex={activeSlideIndex}
-                aspectRatio={aspectRatio}
-                textStyle={textStyle}
-                onSlideClick={setActiveSlideIndex}
-              />
-            )}
           </div>
         </div>
       </main>
