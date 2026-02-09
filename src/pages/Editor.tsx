@@ -19,6 +19,8 @@ export interface SlideData {
   text: string;
   textPosition: { x: number; y: number };
   positionMode: "fixed-top" | "fixed-center" | "fixed-bottom" | "manual";
+  imageOffset: { x: number; y: number };
+  imageScale: number;
 }
 
 export interface TextStyle {
@@ -66,7 +68,7 @@ const Editor = () => {
   
   const [slides, setSlides] = useState<SlideData[]>([]);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("1:1");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
   const [textStyle, setTextStyle] = useState<TextStyle>(defaultTextStyle);
   const [fullText, setFullText] = useState("");
   const [projectTitle, setProjectTitle] = useState("Без названия");
@@ -123,6 +125,8 @@ const Editor = () => {
       text: "",
       textPosition: { x: 50, y: 50 },
       positionMode: "fixed-center" as const,
+      imageOffset: { x: 0, y: 0 },
+      imageScale: 1,
     }));
     setSlides((prev) => [...prev, ...newSlides].slice(0, 10));
   }, []);
@@ -167,6 +171,22 @@ const Editor = () => {
     });
   }, []);
 
+  const handleImageOffsetChange = useCallback((slideId: string, offset: { x: number; y: number }) => {
+    setSlides((prev) =>
+      prev.map((slide) =>
+        slide.id === slideId ? { ...slide, imageOffset: offset } : slide
+      )
+    );
+  }, []);
+
+  const handleImageScaleChange = useCallback((slideId: string, scale: number) => {
+    setSlides((prev) =>
+      prev.map((slide) =>
+        slide.id === slideId ? { ...slide, imageScale: scale } : slide
+      )
+    );
+  }, []);
+
   const handleDeleteSlide = useCallback((slideId: string) => {
     setSlides((prev) => prev.filter((slide) => slide.id !== slideId));
     setActiveSlideIndex((prev) => Math.max(0, prev - 1));
@@ -197,6 +217,14 @@ const Editor = () => {
         let sx = 0, sy = 0, sw = img.width, sh = img.height;
         if (imgRatio > canvasRatio) { sw = img.height * canvasRatio; sx = (img.width - sw) / 2; }
         else { sh = img.width / canvasRatio; sy = (img.height - sh) / 2; }
+        // Apply image scale and offset
+        const imgScale = slide.imageScale || 1;
+        const offsetX = slide.imageOffset?.x || 0;
+        const offsetY = slide.imageOffset?.y || 0;
+        sw = sw / imgScale;
+        sh = sh / imgScale;
+        sx = sx + (img.width - sw) / 2 - (offsetX / 100) * sw;
+        sy = sy + (img.height - sh) / 2 - (offsetY / 100) * sh;
         ctx.drawImage(img, sx, sy, sw, sh, 0, 0, size.w, size.h);
         if (slide.text) {
           const scale = size.w / 500;
@@ -328,6 +356,8 @@ const Editor = () => {
         onSaveProject={handleSaveProject}
         onProjectTitleChange={setProjectTitle}
         onDownload={handleDownload}
+        onImageOffsetChange={handleImageOffsetChange}
+        onImageScaleChange={handleImageScaleChange}
       />
     );
   }
@@ -426,6 +456,8 @@ const Editor = () => {
                   onTextChange={(text) => handleSlideTextChange(activeSlide.id, text)}
                   onPositionChange={(pos) => handlePositionChange(activeSlide.id, pos)}
                   onPositionModeChange={(mode) => handlePositionModeChange(activeSlide.id, mode)}
+                  onImageOffsetChange={(offset) => handleImageOffsetChange(activeSlide.id, offset)}
+                  onImageScaleChange={(scale) => handleImageScaleChange(activeSlide.id, scale)}
                 />
               ) : (
                 <div className="text-center text-muted-foreground">

@@ -1,11 +1,15 @@
 import { useRef, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
 import { 
   AlignVerticalJustifyStart, 
   AlignVerticalJustifyCenter, 
   AlignVerticalJustifyEnd,
-  Move
+  Move,
+  ZoomIn,
+  ZoomOut,
+  MoveVertical
 } from "lucide-react";
 import type { SlideData, TextStyle, AspectRatio } from "@/pages/Editor";
 
@@ -16,6 +20,8 @@ interface SlidePreviewProps {
   onTextChange: (text: string) => void;
   onPositionChange: (position: { x: number; y: number }) => void;
   onPositionModeChange: (mode: SlideData["positionMode"]) => void;
+  onImageOffsetChange: (offset: { x: number; y: number }) => void;
+  onImageScaleChange: (scale: number) => void;
 }
 
 const getFontClass = (fontFamily: string) => {
@@ -41,6 +47,8 @@ export const SlidePreview = ({
   onTextChange,
   onPositionChange,
   onPositionModeChange,
+  onImageOffsetChange,
+  onImageScaleChange,
 }: SlidePreviewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -139,6 +147,35 @@ export const SlidePreview = ({
         </Button>
       </div>
 
+      {/* Image crop controls */}
+      {slide.image && (
+        <div className="flex items-center gap-4 px-4">
+          <div className="flex items-center gap-2 flex-1">
+            <ZoomOut className="w-4 h-4 text-muted-foreground" />
+            <Slider
+              value={[slide.imageScale]}
+              onValueChange={([v]) => onImageScaleChange(v)}
+              min={1}
+              max={3}
+              step={0.05}
+            />
+            <ZoomIn className="w-4 h-4 text-muted-foreground" />
+          </div>
+          {slide.imageScale > 1 && (
+            <div className="flex items-center gap-2 flex-1">
+              <MoveVertical className="w-4 h-4 text-muted-foreground" />
+              <Slider
+                value={[slide.imageOffset.y]}
+                onValueChange={([v]) => onImageOffsetChange({ ...slide.imageOffset, y: v })}
+                min={-30}
+                max={30}
+                step={1}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Canvas */}
       <div
         ref={containerRef}
@@ -154,6 +191,9 @@ export const SlidePreview = ({
             alt=""
             className="absolute inset-0 w-full h-full object-cover"
             draggable={false}
+            style={{
+              transform: `scale(${slide.imageScale}) translate(${slide.imageOffset.x}%, ${slide.imageOffset.y}%)`,
+            }}
           />
         )}
 
