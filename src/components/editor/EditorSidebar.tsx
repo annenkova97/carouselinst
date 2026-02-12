@@ -217,6 +217,7 @@ export const EditorSidebar = ({
                             e.stopPropagation();
                             onDeleteSlide(slide.id);
                           }}
+                          onTextChange={(text) => onSlideTextChange(slide.id, text)}
                         />
                       ))}
                     </div>

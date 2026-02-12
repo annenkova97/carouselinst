@@ -7,6 +7,7 @@ import { CarouselPreview } from "@/components/editor/CarouselPreview";
 import { MobileEditor } from "@/components/editor/MobileEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Download, Save, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useProjectStorage } from "@/hooks/useProjectStorage";
 import { useAuth } from "@/hooks/useAuth";
@@ -403,12 +404,37 @@ const Editor = () => {
               </div>
             </div>
 
-            {/* Canvas Area */}
-            <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
-              {activeSlide ? <SlidePreview slide={activeSlide} aspectRatio={aspectRatio} textStyle={textStyle} onTextChange={text => handleSlideTextChange(activeSlide.id, text)} onPositionChange={pos => handlePositionChange(activeSlide.id, pos)} onPositionModeChange={mode => handlePositionModeChange(activeSlide.id, mode)} onImageOffsetChange={offset => handleImageOffsetChange(activeSlide.id, offset)} onImageScaleChange={scale => handleImageScaleChange(activeSlide.id, scale)} /> : <div className="text-center text-muted-foreground">
-                  <p className="text-lg mb-2">Нет загруженных фотографий</p>
-                  <p className="text-sm">Загрузите изображения в боковой панели слева</p>
-                </div>}
+           {/* Canvas + Text Panel */}
+            <div className="flex-1 flex overflow-hidden min-h-0">
+              {/* Preview */}
+              <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
+                {activeSlide ? <SlidePreview slide={activeSlide} aspectRatio={aspectRatio} textStyle={textStyle} onTextChange={text => handleSlideTextChange(activeSlide.id, text)} onPositionChange={pos => handlePositionChange(activeSlide.id, pos)} onPositionModeChange={mode => handlePositionModeChange(activeSlide.id, mode)} onImageOffsetChange={offset => handleImageOffsetChange(activeSlide.id, offset)} onImageScaleChange={scale => handleImageScaleChange(activeSlide.id, scale)} /> : <div className="text-center text-muted-foreground">
+                    <p className="text-lg mb-2">Нет загруженных фотографий</p>
+                    <p className="text-sm">Загрузите изображения в боковой панели слева</p>
+                  </div>}
+              </div>
+
+              {/* Always-visible text panel */}
+              <div className="w-80 border-l bg-card flex flex-col p-4 gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">Текст поста</span>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-gradient-brand hover:opacity-90"
+                    onClick={distributeText}
+                    disabled={!fullText.trim() || slides.length === 0}
+                  >
+                    Распределить
+                  </Button>
+                </div>
+                <Textarea
+                  placeholder="Введите или надиктуйте текст для карусели..."
+                  className="flex-1 min-h-0 resize-none text-sm"
+                  value={fullText}
+                  onChange={(e) => setFullText(e.target.value)}
+                />
+              </div>
             </div>
 
             {/* Carousel strip */}
