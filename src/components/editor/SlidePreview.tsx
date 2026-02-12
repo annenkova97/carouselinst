@@ -204,44 +204,46 @@ export const SlidePreview = ({
             />
           )}
 
-          {/* Text overlay */}
-          <div
-            ref={textRef}
-            className={`absolute ${getFontClass(textStyle.fontFamily)} font-semibold text-center max-w-[80%] ${
-              slide.positionMode === "manual" ? "cursor-move" : ""
-            }`}
-            style={textStyles}
-            onMouseDown={handleMouseDown}
-            onDoubleClick={() => setIsEditing(true)}
-          >
-            {/* Background */}
-            {textStyle.backgroundEnabled && slide.text && (
-              <div
-                className="absolute inset-0 -m-3"
-                style={backgroundStyles}
-              />
-            )}
-            
-            {/* Text content */}
-            {isEditing ? (
-              <Textarea
-                value={slide.text}
-                onChange={(e) => onTextChange(e.target.value)}
-                onBlur={() => setIsEditing(false)}
-                autoFocus
-                className="relative z-10 bg-transparent border-none resize-none text-center focus:ring-0"
-                style={{
-                  fontSize: `${textStyle.fontSize}px`,
-                  color: textStyle.color,
-                  fontFamily: "inherit",
-                }}
-              />
-            ) : (
-              <span className="relative z-10 whitespace-pre-wrap">
-                {slide.text || "Дважды кликните для редактирования"}
-              </span>
-            )}
-          </div>
+          {/* Text overlay - only show if there's text */}
+          {slide.text ? (
+            <div
+              ref={textRef}
+              className={`absolute ${getFontClass(textStyle.fontFamily)} font-semibold text-center max-w-[80%] ${
+                slide.positionMode === "manual" ? "cursor-move" : ""
+              }`}
+              style={textStyles}
+              onMouseDown={handleMouseDown}
+              onDoubleClick={() => setIsEditing(true)}
+            >
+              {/* Background */}
+              {textStyle.backgroundEnabled && (
+                <div
+                  className="absolute inset-0 -m-3"
+                  style={backgroundStyles}
+                />
+              )}
+              
+              {/* Text content */}
+              {isEditing ? (
+                <Textarea
+                  value={slide.text}
+                  onChange={(e) => onTextChange(e.target.value)}
+                  onBlur={() => setIsEditing(false)}
+                  autoFocus
+                  className="relative z-10 bg-transparent border-none resize-none text-center focus:ring-0"
+                  style={{
+                    fontSize: `${textStyle.fontSize}px`,
+                    color: textStyle.color,
+                    fontFamily: "inherit",
+                  }}
+                />
+              ) : (
+                <span className="relative z-10 whitespace-pre-wrap">
+                  {slide.text}
+                </span>
+              )}
+            </div>
+          ) : null}
 
           {/* Drag indicator */}
           {slide.positionMode === "manual" && !isEditing && (
